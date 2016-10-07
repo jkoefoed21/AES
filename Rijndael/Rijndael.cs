@@ -323,7 +323,7 @@ namespace encryption
                     //WipeDone();
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //WipeError(e);
             }

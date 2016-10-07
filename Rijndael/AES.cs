@@ -243,7 +243,7 @@ namespace encryption
             matrix.addRoundKey(key[0]);
             for (int ii = 1; ii < ROUNDS - 1; ii++)
             {
-                matrix.subBytes(); //takes 1 second of an 8 second encryption approx...thats kinda slow.
+                matrix.subBytes();
                 matrix.shiftAndMix();
                 matrix.addRoundKey(key[ii]);
             }

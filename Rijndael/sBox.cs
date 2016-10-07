@@ -7,7 +7,7 @@ namespace encryption
     class sBox
     {
         /// <summary>
-        /// The size of the box in both dimensions.
+        /// The size of the box.
         /// </summary>
         public static readonly int SIZE = 256;
 
@@ -44,7 +44,7 @@ namespace encryption
                         }
                         x = (byte)(x ^ 0x63); //to make nothing map to itself
                         box[r] = x;
-                        invBox[x] = (byte)(r); //puts r at location x.
+                        invBox[x] = (byte)(r); //puts r at location x in the inverse.
                         break;
                     }
                 }

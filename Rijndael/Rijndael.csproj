@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{132B977B-35AE-43A6-83AE-159D2178AE9F}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>encryption</RootNamespace>
     <AssemblyName>Rijndael</AssemblyName>
@@ -35,7 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>encryption.AES</StartupObject>
+    <StartupObject>encryption.RandomTesting</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

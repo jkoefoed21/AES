@@ -198,6 +198,7 @@
         <member name="T:encryption.BitMatrix">
             <summary>
             A class used to manipulate each block.
+            To work on---a decrypt version of shift and mix.
             </summary>
         </member>
         <member name="F:encryption.BitMatrix.WORD_LENGTH">
@@ -296,7 +297,7 @@
         <member name="M:encryption.BitMatrix.instantatiateShiftMixTable">
             <summary>
              Acts as a helper method to shift and mix, by creating a table that does a bunch of messy arithmetic and
-             Makes each one into a 2D array table lookup.
+             Makes each one into a 2D array table lookup. Feeds out a 16x4--4 values for each of the 16 spots in the matrix
              </summary>                                            
         </member>
         <member name="M:encryption.BitMatrix.shiftRows">
@@ -377,6 +378,12 @@
             <param name="a1"> One byte being multiplied. </param>
             <param name="b2"> The other byte being multiplied. </param>
             <returns> THe product. </returns>
+        </member>
+        <member name="T:encryption.RandomTesting">
+            <summary>
+            This is just a class that I drew up to test various stuff. Currently it is testing the difference between encrypt
+            and encrypt single
+            </summary>
         </member>
         <member name="T:encryption.Rijndael">
             <summary>
@@ -554,7 +561,7 @@
         </member>
         <member name="F:encryption.sBox.SIZE">
             <summary>
-            The size of the box in both dimensions.
+            The size of the box.
             </summary>
         </member>
         <member name="F:encryption.sBox.box">

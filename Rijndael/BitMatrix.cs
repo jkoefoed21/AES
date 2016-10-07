@@ -8,6 +8,7 @@ namespace encryption
 {
     /// <summary>
     /// A class used to manipulate each block.
+    /// To work on---a decrypt version of shift and mix.
     /// </summary>
     class BitMatrix
     {
@@ -26,8 +27,7 @@ namespace encryption
         /// Used for shift and mix as a helper table to compute locations before and after
         /// the shift rows operation.
         /// </summary>
-        public static readonly int[][] shiftMixTable = instantatiateShiftMixTable();
-
+        public static readonly int[] shiftMixTable = instantatiateShiftMixTable();
 
         /// <summary>
         /// The S-Box used for rijndael operations.
@@ -170,19 +170,19 @@ namespace encryption
             byte[] newBytes = new byte[SIZE];
             for (int ii=0; ii<newBytes.Length; ii++)
             {
-                  newBytes[ii] = (byte)(GFBox.multiply(2, bytes[startValue + shiftMixTable[ii][0]]) ^
-                  GFBox.multiply(3, bytes[startValue + shiftMixTable[ii][1]]) ^
-                  bytes[startValue + shiftMixTable[ii][2]] ^
-                  bytes[startValue + shiftMixTable[ii][3]]);
+                  newBytes[ii] = (byte)(GFBox.multiply(2, bytes[startValue + shiftMixTable[4*ii]]) ^
+                  GFBox.multiply(3, bytes[startValue + shiftMixTable[4*ii+1]]) ^
+                  bytes[startValue + shiftMixTable[4*ii+2]] ^
+                  bytes[startValue + shiftMixTable[4*ii+3]]);
             }
             Array.Copy(newBytes, 0, bytes, startValue, SIZE);
         }
                       
         ///<summary>
         /// Acts as a helper method to shift and mix, by creating a table that does a bunch of messy arithmetic and
-        /// Makes each one into a 2D array table lookup.
+        /// Makes each one into a 2D array table lookup. Feeds out a 16x4--4 values for each of the 16 spots in the matrix
         /// </summary>                                            
-        private static int[][] instantatiateShiftMixTable()
+        private static int[] instantatiateShiftMixTable()
         {
             int[][] smTab = new int[16][];
             for (int ii=0; ii<SIZE; ii++)
@@ -190,7 +190,15 @@ namespace encryption
                 smTab[ii] = new int[4] { ((5 * (ii % 4) + 4 * (ii / 4)) % 16), ((5 * ((ii + 1) % 4) + 4 * (ii / 4)) % 16), 
                    (5 * ((ii + 2) % 4) + 4 * (ii / 4)) % 16, (5 * ((ii + 3) % 4) + 4 * (ii / 4)) % 16 };
             }
-            return smTab;
+            int[] table = new int[64];
+            for (int ii=0; ii<smTab.Length; ii++)
+            {
+                table[4 * ii] = smTab[ii][0];
+                table[4 * ii+1] = smTab[ii][1];
+                table[4 * ii+2] = smTab[ii][2];
+                table[4 * ii+3] = smTab[ii][3];
+            }
+            return table;
         }
 
         /// <summary>
