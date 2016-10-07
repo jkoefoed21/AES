@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Web">
+    <PropertyGroup>
+        <Name>RijndaelDocumentationTest</Name>
+        <TopicStyle>vs2005</TopicStyle>
+        <LanguageId>1033</LanguageId>
+    </PropertyGroup>
+    <ItemGroup>
+        <Dlls Include="C:\Users\Jack Koefoed\Documents\Visual Studio 2015\Projects\Rijndael\Rijndael\bin\Debug\Rijndael.exe" />
+        <Comments Include="C:\Users\Jack Koefoed\Documents\Visual Studio 2015\Projects\Rijndael\Rijndael\bin\Debug\Rijndael.XML" />
+    </ItemGroup>
+    <Import Project="$(DXROOT)\Examples\Generic\generic.targets" />
+</Project>

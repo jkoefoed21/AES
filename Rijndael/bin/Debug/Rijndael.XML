@@ -1,0 +1,620 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Rijndael</name>
+    </assembly>
+    <members>
+        <member name="T:encryption.AES">
+            <summary>
+            Handles overall program execution.
+            </summary>
+        </member>
+        <member name="F:encryption.AES.ROUNDS">
+            <summary>
+            The number of rounds for 128 bit AES
+            </summary>
+        </member>
+        <member name="F:encryption.AES.GF_TABLE">
+            <summary>
+            The GF(2^8) table used throughout the program.
+            </summary>
+        </member>
+        <member name="F:encryption.AES.SUB_TABLE">
+            <summary>
+            The s-box used throughout the table.
+            </summary>
+        </member>
+        <member name="F:encryption.AES.SALT_LENGTH">
+            <summary>
+            The Length of the salt.
+            </summary>
+        </member>
+        <member name="F:encryption.AES.BLOCK_LENGTH">
+            <summary>
+            The length of 128 bits in bytes
+            </summary>
+        </member>
+        <member name="F:encryption.AES.HASH_LENGTH">
+            <summary>
+            The length of the password hash.
+            </summary>
+        </member>
+        <member name="F:encryption.AES.WORD_LENGTH">
+            <summary>
+            The length of a word in bytes
+            </summary>
+        </member>
+        <member name="F:encryption.AES.NUM_ITERATIONS">
+            <summary>
+            The Number of iterations used for the PBKDF2. This slows the program down a lot
+            but it is good that it does, because it makes the hash, iv cryptographically secure.
+            </summary>
+        </member>
+        <member name="M:encryption.AES.Main(System.String[])">
+            <summary>
+            the entry point for the program. Opens the UI.
+            </summary>
+            <param name="args"> Command line input</param>
+        </member>
+        <member name="M:encryption.AES.encryptionMain(System.String,System.String)">
+            <summary>
+            Manages the encryption process.
+            </summary>
+            <param name="password"> Password to be encrypted with </param>
+            <param name="filePath"> File to be encrypted </param>
+        </member>
+        <member name="M:encryption.AES.decryptionMain(System.String,System.String)">
+            <summary>
+            Manages the decryption process.
+            </summary>
+            <param name="password"> Password to be decrypted with </param>
+            <param name="filePath"> File to be decrypted </param>
+        </member>
+        <member name="M:encryption.AES.packageEncryptionOutput(System.Byte[],System.Byte[],System.Byte[],System.Byte[],System.Int32)">
+            <summary>
+            Appends the Hash, IV, and salt to the start of the output.
+            </summary>
+            <param name="keyHash"> Hash of the encryption key </param>
+            <param name="initVect"> Initialization Vector </param>
+            <param name="salt"> Salt to be added</param>
+            <param name="fin"> Output to be appended onto </param>
+            <param name="initialByteLength"> Initial length of the input, to be truncated down to. </param>
+            <returns> The full byte array to be outputted. </returns>
+        </member>
+        <member name="M:encryption.AES.encrypt(encryption.BitMatrix[],System.Byte[],encryption.BitMatrix)">
+            <summary>
+            Runs the encryption algorithm.
+            </summary>
+            <param name="key"> The full key schedule </param>
+            <param name="toEncrypt"> The byte array to be encrypted </param>
+            <param name="iv"> The initialization vector </param>
+        </member>
+        <member name="M:encryption.AES.encryptSingle(encryption.BitMatrix[],encryption.BitMatrix)">
+            <summary>
+            Encrypts a single block.
+            </summary>
+            <param name="key"> The full key schedule </param>
+            <param name="matrix"> The block to be encrypted </param>
+        </member>
+        <member name="M:encryption.AES.decrypt(encryption.BitMatrix[],System.Byte[],encryption.BitMatrix,System.Int32)">
+            <summary>
+            Runs the decryption process
+            </summary>
+            <param name="key"> The full key schedule </param>
+            <param name="toDecrypt"> The byte array to be decrypted </param>
+            <param name="iv"> The initialization vector </param>
+            <param name="replaceBytes"> The number of bytes to be copied over for CTS </param>
+        </member>
+        <member name="M:encryption.AES.decryptSingle(encryption.BitMatrix[],encryption.BitMatrix)">
+            <summary>
+            Decrypts a single block.
+            </summary>
+            <param name="key"> The full key schedule </param>
+            <param name="matrix"> The block to be decrypted </param>
+        </member>
+        <member name="M:encryption.AES.getKeySchedule(System.Byte[])">
+            <summary>
+            Creates the full key schedule.
+            </summary>
+            <param name="key"> The single block key to be expanded. </param>
+            <returns> The key schedule </returns>
+        </member>
+        <member name="M:encryption.AES.generateRoundConstants">
+            <summary>
+            Generates the round constants using GF(2^8) arithmetic.
+            </summary>
+            <returns> The round constants. </returns>
+        </member>
+        <member name="M:encryption.AES.byteRotate(System.Byte[])">
+            <summary>
+            Rotates a byte array by one full byte.
+            </summary>
+            <param name="b"> The byte array to be rotated </param>
+        </member>
+        <member name="M:encryption.AES.getHash(System.Byte[],System.Byte[])">
+            <summary>
+            Creates the Hash of the key.
+            </summary>
+            <param name="key"> The key to be hashed. </param>
+            <param name="salt"> The salt hashed with the key </param>
+            <returns> The hash of the key. </returns>
+        </member>
+        <member name="M:encryption.AES.swapElements(System.Byte[],System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Swaps a pair of blocks in a byte array
+            </summary>
+            <param name="array"> The array in which the swap is taking place</param>
+            <param name="block1S"> The start of the first block.</param>
+            <param name="block2S"> The start of the second block. </param>
+            <param name="length"> The length of the blocks being swapped. </param>
+        </member>
+        <member name="T:encryption.AlgorithmTester">
+            <summary>
+            Tests the encryption process ECB against a known test vector
+            taken from http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors
+            </summary>
+        </member>
+        <member name="F:encryption.AlgorithmTester.gfb">
+            <summary>
+            The gf28 table used in these encryptions.
+            </summary>
+        </member>
+        <member name="F:encryption.AlgorithmTester.sb">
+            <summary>
+            The s-box used in these encryptions
+            </summary>
+        </member>
+        <member name="F:encryption.AlgorithmTester.key">
+            <summary>
+            The key used for all tests.
+            </summary>
+        </member>
+        <member name="F:encryption.AlgorithmTester.test1">
+            <summary>
+            The first test input.
+            </summary>
+        </member>
+        <member name="F:encryption.AlgorithmTester.result1">
+            <summary>
+            The expected first test output
+            </summary>
+        </member>
+        <member name="F:encryption.AlgorithmTester.test2">
+            <summary>
+            The 2nd test input
+            </summary>
+        </member>
+        <member name="F:encryption.AlgorithmTester.result2">
+            <summary>
+            The expected 2nd test output.
+            </summary>
+        </member>
+        <member name="M:encryption.AlgorithmTester.Main(System.String[])">
+            <summary>
+            The main method. Program starts here.
+            </summary>
+            <param name="args"> Command line arguments </param>
+        </member>
+        <member name="T:encryption.BitMatrix">
+            <summary>
+            A class used to manipulate each block.
+            </summary>
+        </member>
+        <member name="F:encryption.BitMatrix.WORD_LENGTH">
+            <summary>
+            The length of a word, in bytes.
+            </summary>
+        </member>
+        <member name="F:encryption.BitMatrix.SIZE">
+            <summary>
+            The length of a 128 bit AES block
+            </summary>
+        </member>
+        <member name="F:encryption.BitMatrix.shiftMixTable">
+            <summary>
+            Used for shift and mix as a helper table to compute locations before and after
+            the shift rows operation.
+            </summary>
+        </member>
+        <member name="F:encryption.BitMatrix.subBox">
+            <summary>
+            The S-Box used for rijndael operations.
+            </summary>
+        </member>
+        <member name="F:encryption.BitMatrix.GFBox">
+            <summary>
+            The GF(2^8) table used for the mix columns step.
+            </summary>
+        </member>
+        <member name="F:encryption.BitMatrix.startValue">
+            <summary>
+            The first index of the underlying byte array operated on in this object
+            </summary>
+        </member>
+        <member name="F:encryption.BitMatrix.bytes">
+            <summary>
+            The bytes contained in the matrix.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.#ctor(encryption.GF28Table,encryption.sBox,System.Byte[],System.Int32)">
+            <summary>
+            Constructs a matrix containing all values of 0x00.
+            </summary>
+            <param name="g"> The GF(2^8) field being used. </param>
+            <param name="s"> The S-Box being used. </param>
+            <param name="b"> The underlying byte array </param>
+            <param name="sv"> The index of the first value contained in this object within b. </param>
+        </member>
+        <member name="M:encryption.BitMatrix.#ctor(encryption.GF28Table,encryption.sBox,System.Byte[],System.Byte[],System.Byte[],System.Byte[])">
+            <summary>
+            Constructs a new BitMatrix with the specified 4 "words".
+            </summary>
+            <param name="g"> The GF(2^8) field being used. </param>
+            <param name="s"> The S-Box being used. </param>
+            <param name="a">The first word. </param>
+            <param name="b"> The second word. </param>
+            <param name="c"> The third word. </param>
+            <param name="d"> THe fourth word. </param>
+        </member>
+        <member name="M:encryption.BitMatrix.getBytes">
+            <summary>
+            Gets the underlying array of this BitMatrix.
+            </summary>
+            <returns> The array. </returns>
+        </member>
+        <member name="M:encryption.BitMatrix.addRoundKey(encryption.BitMatrix)">
+            <summary>
+            XORs each byte of this BitMatrix with the corresponding byte in the inputted BitMatrix.
+            </summary>
+            <param name="other"> The BitMatrix containing the key. </param>
+        </member>
+        <member name="M:encryption.BitMatrix.subBytes">
+            <summary>
+            Replaces each value in this BitMatrix with the corresponding value in the S-Box.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.invSubBytes">
+            <summary>
+            Replaces each value in this BitMatrix with the corresponding value in the inverse S-Box.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.mixColumns">
+            <summary>
+            Conducts the mixColumns step of the AES algorithm.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.invMixColumns">
+            <summary>
+            Conducts the inverse mix columns step of the AES algorithm.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.shiftAndMix">
+            <summary>
+            Conducts shiftRows and MixColumns with only a single array copy instead of two. Approx 10% faster.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.instantatiateShiftMixTable">
+            <summary>
+             Acts as a helper method to shift and mix, by creating a table that does a bunch of messy arithmetic and
+             Makes each one into a 2D array table lookup.
+             </summary>                                            
+        </member>
+        <member name="M:encryption.BitMatrix.shiftRows">
+            <summary>
+            Conducts the shift rows step of the AES algorithm.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.invShiftRows">
+            <summary>
+            Conducts the inverse shift rows step of the AES algorithm.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.getWord(System.Int32)">
+            <summary>
+            Gets a word from this BitMatrix.
+            </summary>
+            <param name="c"> The index of the specified word. </param>
+            <returns>The word as a byte array.</returns>
+        </member>
+        <member name="M:encryption.BitMatrix.getByte(System.Int32)">
+            <summary>
+            Gets the 0-WORD_LENGTH*WORD_LENGTH indexed byte from this BitMatrix.
+            </summary>
+            <param name="n"> THe index of the byte being sought. </param>
+            <returns> The byte. </returns>
+        </member>
+        <member name="M:encryption.BitMatrix.ToString">
+            <summary>
+            Provides a string representation of this object.
+            </summary>
+            <returns> A string representation. </returns>
+        </member>
+        <member name="M:encryption.BitMatrix.Equals(System.Object)">
+            <summary>
+            Checks if this object is equal to another.
+            </summary>
+            <param name="obj"> The object to be checked</param>
+            <returns> True if this is equal to another bitMatrix</returns>
+        </member>
+        <member name="M:encryption.BitMatrix.GetHashCode">
+            <summary>
+            Serves as the hash function for this object.
+            </summary>
+            <returns> The hash value of this object </returns>
+        </member>
+        <member name="T:encryption.GF28Table">
+            <summary>
+            A class containing a GF(2^8) multiplication table.
+            </summary>
+        </member>
+        <member name="F:encryption.GF28Table.div">
+            <summary>
+            A ushort representation of the irreducible polynomial used in GF(2^8) arithmetic.
+            </summary>
+        </member>
+        <member name="F:encryption.GF28Table.multTable">
+            <summary>
+            The multiplication table.
+            </summary>
+        </member>
+        <member name="M:encryption.GF28Table.#ctor">
+            <summary>
+            Constructs a new multiplication table.
+            </summary>
+        </member>
+        <member name="M:encryption.GF28Table.multiply(System.Byte,System.Byte)">
+            <summary>
+            Gets a product given two bytes to be multiplied.
+            </summary>
+            <param name="a"> One byte being multiplied. </param>
+            <param name="b"> The other byte being multiplied. </param>
+            <returns> The product. </returns>
+        </member>
+        <member name="M:encryption.GF28Table.multiplication(System.Byte,System.Byte)">
+            <summary>
+            The underlying multiplication algorithm.
+            </summary>
+            <param name="a1"> One byte being multiplied. </param>
+            <param name="b2"> The other byte being multiplied. </param>
+            <returns> THe product. </returns>
+        </member>
+        <member name="T:encryption.Rijndael">
+            <summary>
+            Runs the UI.
+            </summary>
+        </member>
+        <member name="M:encryption.Rijndael.#ctor">
+            <summary>
+            Creates the UI.
+            </summary>
+        </member>
+        <member name="F:encryption.Rijndael.runningFiles">
+            <summary>
+            A List of file paths currently being operated on.
+            </summary>
+        </member>
+        <member name="M:encryption.Rijndael.OnFormClosing(System.Windows.Forms.FormClosingEventArgs)">
+            <summary>
+            Called when the user clicks the X button.
+            </summary>
+            <param name="e"> The closing event potentially being cancelled.</param>
+        </member>
+        <member name="T:encryption.Rijndael.invokeSetIndicatorText">
+            <summary>
+            A delegate for setting the indicator.
+            </summary>
+            <param name="text"> The text for the indicator to be set to </param>
+        </member>
+        <member name="T:encryption.Rijndael.invokeSetPasswordText">
+            <summary>
+            A delegate for setting the password box.
+            </summary>
+            <param name="text"> The text for the box to be set to </param>
+        </member>
+        <member name="T:encryption.Rijndael.invokeSetFileText">
+            <summary>
+            A delegate for setting the file box.
+            </summary>
+            <param name="text"> The text for the box to be set to </param>
+        </member>
+        <member name="T:encryption.Rijndael.invokeSetPasswordCheckText">
+            <summary>
+            A delegate for setting the password check box.
+            </summary>
+            <param name="text"> The text for the box to be set to </param>
+        </member>
+        <member name="T:encryption.Rijndael.invokeIsRunningText">
+            <summary>
+            A delegate for setting the running indicator..
+            </summary>
+            <param name="text"> The text for the indicator to be set to </param>
+        </member>
+        <member name="M:encryption.Rijndael.SetIndicatorText(System.String)">
+            <summary>
+            A method to set the message indicator text in a thread-safe way.
+            </summary>
+            <param name="text"> The text for it to be set to</param>
+        </member>
+        <member name="M:encryption.Rijndael.SetPasswordText(System.String)">
+            <summary>
+            A method to set the password box text in a thread-safe way.
+            </summary>
+            <param name="text"> The text for it to be set to</param>
+        </member>
+        <member name="M:encryption.Rijndael.SetFileText(System.String)">
+            <summary>
+            A method to set the file path box text in a thread-safe way.
+            </summary>
+            <param name="text"> The text for it to be set to</param>
+        </member>
+        <member name="M:encryption.Rijndael.SetPasswordCheckText(System.String)">
+            <summary>
+            A method to set the password check box text in a thread-safe way.
+            </summary>
+            <param name="text"> The text for it to be set to</param>
+        </member>
+        <member name="M:encryption.Rijndael.SetIsRunningText(System.String)">
+            <summary>
+            A method to set the running indicator text in a thread-safe way.
+            </summary>
+            <param name="text"> The text for it to be set to</param>
+        </member>
+        <member name="M:encryption.Rijndael.encryptClick">
+            <summary>
+            Manages the actions taken when the encrypt button is clicked.
+            </summary>
+        </member>
+        <member name="M:encryption.Rijndael.wipeDirectory(System.String)">
+            <summary>
+            Recursively wipes every file in the directory, then deletes the directory.
+            </summary>
+            <param name="path"> the path to be wiped </param>
+        </member>
+        <member name="M:encryption.Rijndael.wipeFile(System.String,System.Int32)">
+            <summary>
+            See: http://www.codeproject.com/Articles/22736/Securely-Delete-a-File-using-NET
+            </summary>
+            <param name="filename"> The path to overwrite </param>
+            <param name="timesToWrite"> The number of times to write </param>
+        </member>
+        <member name="M:encryption.Rijndael.encryptButton_Click(System.Object,System.EventArgs)">
+            <summary>
+            Called when the encrypt button is clicked.
+            </summary>
+            <param name="sender"> The object calling this method </param>
+            <param name="e"> Args for the event </param>
+        </member>
+        <member name="M:encryption.Rijndael.decryptButton_Click(System.Object,System.EventArgs)">
+            <summary>
+            Called when the decrypt button is clicked.
+            </summary>
+            <param name="sender"> The object calling this method </param>
+            <param name="e"> Args for the event </param>
+        </member>
+        <member name="M:encryption.Rijndael.decryptClick">
+            <summary>
+            Manages the events when the decrypt button is clicked.
+            </summary>
+        </member>
+        <member name="M:encryption.Rijndael.fileBrowseButton_Click(System.Object,System.EventArgs)">
+            <summary>
+            Called when the file browse button is clicked.
+            </summary>
+            <param name="sender"> The object calling this method </param>
+            <param name="e"> Args for the event </param>
+        </member>
+        <member name="M:encryption.Rijndael.folderBrowseButton_Click(System.Object,System.EventArgs)">
+            <summary>
+            Called when the folder browse button is clicked
+            </summary>
+            <param name="sender"> The object calling this method </param>
+            <param name="e">Args for the event</param>
+        </member>
+        <member name="M:encryption.Rijndael.checkPasswordAndPath(System.String,System.String)">
+            <summary>
+            Checks the password and the path for length violations.
+            </summary>
+            <param name="password"> The password being inputted. </param>
+            <param name="filePath"> The file path being inputted. </param>
+            <returns> False if there are any problems </returns>
+        </member>
+        <member name="M:encryption.Rijndael.checkAndClearBoxTexts(System.String)">
+            <summary>
+            Checks the file for concurrent modification problems and clears the boxes.
+            </summary>
+            <param name="filePath"> The file path being inputted. </param>
+            <returns> False if there are any problems. </returns>
+        </member>
+        <member name="M:encryption.Rijndael.checkIsCurrentlyRunning">
+            <summary>
+            Checks and resets the indicator based on whether the program is running.
+            </summary>
+        </member>
+        <member name="F:encryption.Rijndael.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:encryption.Rijndael.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:encryption.Rijndael.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:encryption.sBox">
+            <summary>
+            A class containing the rijndael s-box and the inverse.
+            </summary>
+        </member>
+        <member name="F:encryption.sBox.SIZE">
+            <summary>
+            The size of the box in both dimensions.
+            </summary>
+        </member>
+        <member name="F:encryption.sBox.box">
+            <summary>
+            The forward box.
+            </summary>
+        </member>
+        <member name="F:encryption.sBox.invBox">
+            <summary>
+            The inverse box.
+            </summary>
+        </member>
+        <member name="M:encryption.sBox.#ctor(encryption.GF28Table)">
+            <summary>
+            Constructs both boxes.
+            </summary>
+            <param name="gfB"> The GF(2^8) table being used. </param>
+        </member>
+        <member name="M:encryption.sBox.getByte(System.Byte)">
+            <summary>
+            Gets the box in the S-box corresponding with the specified byte.
+            </summary>
+            <param name="b"> The byte inputted.</param>
+            <returns> The corresponding byte in the output. </returns>
+        </member>
+        <member name="M:encryption.sBox.getInvByte(System.Byte)">
+            <summary>
+            Gets the box in the inverse S-box corresponding with the specified byte.
+            </summary>
+            <param name="b"> The byte inputted.</param>
+            <returns> The corresponding byte in the output. </returns>
+        </member>
+        <member name="M:encryption.sBox.bitRotate(System.Byte)">
+            <summary>
+            Rotates a byte by one bit.
+            </summary>
+            <param name="y">The inputted byte.</param>
+            <returns> The rotated byte. </returns>
+        </member>
+        <member name="M:encryption.sBox.ToString">
+            <summary>
+            Generates a string representation of both boxes.
+            </summary>
+            <returns>The string representation. </returns>
+        </member>
+        <member name="T:encryption.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:encryption.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:encryption.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+    </members>
+</doc>
