@@ -320,12 +320,14 @@ namespace encryption
                 throw new NullReferenceException("Decrypting null matrix");
             }
             matrix.addRoundKey(key[ROUNDS - 1]);
+            //matrix.invShiftRows();
             for (int ii = ROUNDS - 2; ii > 0; ii--)
             {
                 matrix.invShiftRows();
                 matrix.invSubBytes();
                 matrix.addRoundKey(key[ii]);
                 matrix.invMixColumns();
+                //matrix.invShiftAndMix();
             }
             matrix.invShiftRows();
             matrix.invSubBytes();

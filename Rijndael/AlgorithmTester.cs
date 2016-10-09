@@ -50,15 +50,24 @@ namespace encryption
         public static void Main(String[] args)
         {
             BitMatrix t1 = new BitMatrix(gfb, sb, test1, 0);
+            BitMatrix f1 = new BitMatrix(gfb, sb, (byte[]) test1.Clone(), 0);
             BitMatrix r1 = new BitMatrix(gfb, sb, result1, 0);
             BitMatrix t2 = new BitMatrix(gfb, sb, test2, 0);
+            BitMatrix f2 = new BitMatrix(gfb, sb, (byte[]) test2.Clone(), 0);
             BitMatrix r2 = new BitMatrix(gfb, sb, result2, 0);
             BitMatrix[] keySchedule = AES.getKeySchedule(key);
             AES.encryptSingle(keySchedule, t1);
             AES.encryptSingle(keySchedule, t2);
 
-            Console.WriteLine(t1.Equals(r1) ? "Test 1 Successful" : "Test 1 Fail.");
-            Console.WriteLine(t2.Equals(r2) ? "Test 2 Successful" : "Test 2 Fail.");
+            Console.WriteLine(t1.Equals(r1) ? "Encrypt 1 Successful" : "Encrypt 1 Fail.");
+            Console.WriteLine(t2.Equals(r2) ? "Encrypt 2 Successful" : "Encrypt 2 Fail.");
+
+            AES.decryptSingle(keySchedule, t1);
+            AES.decryptSingle(keySchedule, t2);
+
+            Console.WriteLine(t1.Equals(f1) ? "Decrypt 1 Successful" : "Decrypt 1 Fail.");
+            Console.WriteLine(t2.Equals(f2) ? "Decrypt 2 Successful" : "Decrypt 2 Fail.");
+
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }

@@ -27,7 +27,13 @@ namespace encryption
         /// Used for shift and mix as a helper table to compute locations before and after
         /// the shift rows operation.
         /// </summary>
-        public static readonly int[] shiftMixTable = instantatiateShiftMixTable();
+        public static readonly int[] shiftMixTable = instantiateShiftMixTable();
+
+        /// <summary>
+        /// Used for shift and mix as a helper table to compute locations before and after
+        /// the shift rows operation.
+        /// </summary>
+        public static readonly int[] invShiftMixTable = instantiateInvShiftMixTable();
 
         /// <summary>
         /// The S-Box used for rijndael operations.
@@ -131,7 +137,7 @@ namespace encryption
         }
 
         /// <summary>
-        /// Conducts the mixColumns step of the AES algorithm.
+        /// Conducts the mixColumns step of the AES algorithm. Currently not used anywhere--shiftrows is, however. 
         /// </summary>
         public void mixColumns() 
         {
@@ -164,6 +170,7 @@ namespace encryption
 
         /// <summary>
         /// Conducts shiftRows and MixColumns with only a single array copy instead of two. Approx 10% faster.
+        /// Basically performs mixcolumns, but on values specified in the SMtable which is a map of what SR does.
         /// </summary>
         public void shiftAndMix()
         {
@@ -180,15 +187,18 @@ namespace encryption
                       
         ///<summary>
         /// Acts as a helper method to shift and mix, by creating a table that does a bunch of messy arithmetic and
-        /// Makes each one into a 2D array table lookup. Feeds out a 16x4--4 values for each of the 16 spots in the matrix
+        /// Makes each one into a 2D array table lookup. Feeds out a 64 but functionally a 
+        /// 16x4--4 values for each of the 16 spots in the matrix
         /// </summary>                                            
-        private static int[] instantatiateShiftMixTable()
+        private static int[] instantiateShiftMixTable()
         {
             int[][] smTab = new int[16][];
             for (int ii=0; ii<SIZE; ii++)
             {
-                smTab[ii] = new int[4] { ((5 * (ii % 4) + 4 * (ii / 4)) % 16), ((5 * ((ii + 1) % 4) + 4 * (ii / 4)) % 16), 
-                   (5 * ((ii + 2) % 4) + 4 * (ii / 4)) % 16, (5 * ((ii + 3) % 4) + 4 * (ii / 4)) % 16 };
+                smTab[ii] = new int[4] { ((5 * (ii % WORD_LENGTH) + WORD_LENGTH * (ii / WORD_LENGTH)) % 16),
+                        ((5 * ((ii + 1) % WORD_LENGTH) + WORD_LENGTH * (ii / WORD_LENGTH)) % 16), 
+                        (5 * ((ii + 2) % WORD_LENGTH) + WORD_LENGTH * (ii / WORD_LENGTH)) % 16,
+                        (5 * ((ii + 3) % WORD_LENGTH) + WORD_LENGTH * (ii / WORD_LENGTH)) % 16 };
             }
             int[] table = new int[64];
             for (int ii=0; ii<smTab.Length; ii++)
@@ -197,6 +207,51 @@ namespace encryption
                 table[4 * ii+1] = smTab[ii][1];
                 table[4 * ii+2] = smTab[ii][2];
                 table[4 * ii+3] = smTab[ii][3];
+            }
+            return table;
+        }
+
+        /// <summary>
+        /// Conducts invMixColumns and Shift Rows with only a single array copy instead of two. Much faster faster.
+        /// Basically performs mixcolumns, but on values specified in the iSMtable which is a map of what SR does.
+        /// </summary>
+        public void invShiftAndMix()
+        {
+            byte[] newBytes = new byte[SIZE];
+            for (int ii = 0; ii < newBytes.Length; ii++)
+            {
+                newBytes[ii] = (byte)(GFBox.multiply(14, bytes[startValue + invShiftMixTable[4 * ii]]) ^
+                GFBox.multiply(11, bytes[startValue + invShiftMixTable[4 * ii + 1]]) ^
+                GFBox.multiply(13, bytes[startValue + invShiftMixTable[4 * ii + 2]]) ^
+                GFBox.multiply(9, bytes[startValue + invShiftMixTable[4 * ii + 3]]));
+            }
+            Array.Copy(newBytes, 0, bytes, startValue, SIZE);
+        }
+
+        /// <summary>
+        /// Instantiates the table for invShiftandMix--different architecture from shiftandmix because mix is first
+        /// Much faster than the two seperate.
+        /// </summary>
+        /// <returns> The Inv Shift Mix table </returns>
+        private static int[] instantiateInvShiftMixTable()
+        {
+            int[][] smTab = new int[16][];
+            for (int ii = 0; ii < SIZE; ii++)
+            {
+                smTab[ii] = new int[4] { (((((16 - 3 * (ii % 4) + 4 * (ii / 4)) % 16)/4)*4)+((16 - 3 * (ii % 4)) % 4)),
+                                         (((((16 - 3 * (ii % 4) + 4 * (ii / 4)) % 16)/4)*4)+((17 - 3 * (ii % 4)) % 4)),
+                                         (((((16 - 3 * (ii % 4) + 4 * (ii / 4)) % 16)/4)*4)+((18 - 3 * (ii % 4)) % 4)),
+                                         (((((16 - 3 * (ii % 4) + 4 * (ii / 4)) % 16)/4)*4)+((19 - 3 * (ii % 4)) % 4)) };
+                //Console.Write(ii+" ");
+                //Console.WriteLine(smTab[ii][0] + " " + smTab[ii][1] + " " + smTab[ii][2] + " " + smTab[ii][3]);
+            }
+            int[] table = new int[64];
+            for (int ii = 0; ii < smTab.Length; ii++)
+            {
+                table[4 * ii] = smTab[ii][0];
+                table[4 * ii + 1] = smTab[ii][1];
+                table[4 * ii + 2] = smTab[ii][2];
+                table[4 * ii + 3] = smTab[ii][3];
             }
             return table;
         }
@@ -215,7 +270,7 @@ namespace encryption
         }
 
         /// <summary>
-        /// Conducts the inverse shift rows step of the AES algorithm.
+        /// Conducts the inverse shift rows step of the AES algorithm. 
         /// </summary>
         public void invShiftRows()
         {

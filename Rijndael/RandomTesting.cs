@@ -23,13 +23,13 @@ namespace encryption
             int m = 1000000;
             for (int ii = 0; ii < m; ii++)
             {
-                AES.encryptSingle(schedule, matrix);
+                AES.decryptSingle(schedule, matrix);
             }
             Stopwatch s = new Stopwatch();
             s.Start();
             for (int ii=0; ii<m; ii++)
             {
-                AES.encryptSingle(schedule, matrix);
+                AES.decryptSingle(schedule, matrix);
             }
             Console.WriteLine(s.ElapsedMilliseconds);
             Console.ReadKey();
@@ -39,7 +39,7 @@ namespace encryption
                 //AES.encrypt(schedule, toEncrypt, iv);
             }
             //Console.WriteLine(s.ElapsedMilliseconds);
-            Console.ReadKey();
+            //Console.ReadKey();
         }
     }
 }
