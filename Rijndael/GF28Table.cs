@@ -15,24 +15,17 @@ namespace encryption
         /// <summary>
         /// The multiplication table.
         /// </summary>
-        private byte[][] multTable; //64 KILObytes of memory stored here. 64 kilobytes is chump change.
-        
+        private byte[] mTable; //64 KILObytes of memory stored here. 64 kilobytes is chump change.
+
         /// <summary>
         /// Constructs a new multiplication table.
         /// </summary>
         public GF28Table()
         {
-            multTable = new byte[256][]; //could potentially half the table
-            for (int ii=0; ii<multTable.Length; ii++)
+            mTable = new byte[65536];
+            for (int ii=0; ii<mTable.Length; ii++)
             {
-                multTable[ii] = new byte[multTable.Length];
-            }
-            for (int ii=0; ii<multTable.Length; ii++)
-            {
-                for (int jj=0; jj<multTable[ii].Length; jj++)
-                {
-                    multTable[ii][jj] = multiplication((byte)ii, (byte) jj);
-                }
+                mTable[ii] = multiplication((byte) (ii/256), (byte) (ii%256));
             }
         }
 
@@ -44,7 +37,8 @@ namespace encryption
         /// <returns> The product. </returns>
         public byte multiply(byte a, byte b) //this is the public call to the object. Multiplication is
         {                                    //the underlying arithmetic, but it is only used to created
-            return multTable[a][b];          //the multiplication table, because it is expensive.
+                                             //the multiplication table, because it is expensive.
+            return mTable[256 * a + b];
         }
 
         /// <summary>

@@ -216,8 +216,8 @@ namespace encryption
             {
                 return;
             }
-            BitMatrix matrix = new BitMatrix(GF_TABLE, SUB_TABLE, toEncrypt, 0);
-            matrix.addRoundKey(iv);
+            BitMatrix matrix = new BitMatrix(GF_TABLE, SUB_TABLE, toEncrypt, 0); //first matrix is seperate 
+            matrix.addRoundKey(iv);                                              //because it operates off IV
             encryptSingle(key, matrix); //for CBC
             for (int jj = 1; jj < toEncrypt.Length / BLOCK_LENGTH; jj++)
             {

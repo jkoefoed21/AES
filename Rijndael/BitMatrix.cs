@@ -71,7 +71,7 @@ namespace encryption
         }
 
         /// <summary>
-        /// Constructs a new BitMatrix with the specified 4 "words".
+        /// Constructs a new BitMatrix with the specified 4 "words". 
         /// </summary>
         /// <param name="g"> The GF(2^8) field being used. </param>
         /// <param name="s"> The S-Box being used. </param>
@@ -81,7 +81,7 @@ namespace encryption
         /// <param name="d"> THe fourth word. </param>
         public BitMatrix(GF28Table g, sBox s, byte[] a, byte[] b, byte[] c, byte[] d)
         {
-            bytes = new byte[16];
+            bytes = new byte[SIZE];
             if (a.Length != WORD_LENGTH || b.Length != WORD_LENGTH || c.Length != WORD_LENGTH || d.Length != WORD_LENGTH)
             {
                 throw new ArgumentException();
@@ -153,7 +153,7 @@ namespace encryption
         }
 
         /// <summary>
-        /// Conducts the inverse mix columns step of the AES algorithm.
+        /// Conducts the inverse mix columns step of the AES algorithm. Currently Obselete.
         /// </summary>
         public void invMixColumns()
         {
@@ -238,10 +238,12 @@ namespace encryption
             int[][] smTab = new int[16][];
             for (int ii = 0; ii < SIZE; ii++)
             {
-                smTab[ii] = new int[4] { (((((16 - 3 * (ii % 4) + 4 * (ii / 4)) % 16)/4)*4)+((16 - 3 * (ii % 4)) % 4)),
-                                         (((((16 - 3 * (ii % 4) + 4 * (ii / 4)) % 16)/4)*4)+((17 - 3 * (ii % 4)) % 4)),
-                                         (((((16 - 3 * (ii % 4) + 4 * (ii / 4)) % 16)/4)*4)+((18 - 3 * (ii % 4)) % 4)),
-                                         (((((16 - 3 * (ii % 4) + 4 * (ii / 4)) % 16)/4)*4)+((19 - 3 * (ii % 4)) % 4)) };
+                int root = ((((SIZE - 3 * (ii % 4) + 4 * (ii / 4)) % SIZE) / 4) * 4);
+                //this could be optimized, but it happens once a run, so it doesn't really matter
+                smTab[ii] = new int[4] { (root+((16 - 3 * (ii % 4)) % 4)),
+                                         (root+((17 - 3 * (ii % 4)) % 4)),
+                                         (root+((18 - 3 * (ii % 4)) % 4)),
+                                         (root+((19 - 3 * (ii % 4)) % 4)) };
                 //Console.Write(ii+" ");
                 //Console.WriteLine(smTab[ii][0] + " " + smTab[ii][1] + " " + smTab[ii][2] + " " + smTab[ii][3]);
             }
