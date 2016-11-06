@@ -18,14 +18,19 @@ namespace encryption
         private byte[] mTable; //64 KILObytes of memory stored here. 64 kilobytes is chump change.
 
         /// <summary>
+        /// The number of values that can fit into a byte.
+        /// </summary>
+        private readonly int BYTE_NUMS = 256;
+
+        /// <summary>
         /// Constructs a new multiplication table.
         /// </summary>
         public GF28Table()
         {
-            mTable = new byte[65536];
+            mTable = new byte[BYTE_NUMS*BYTE_NUMS];
             for (int ii=0; ii<mTable.Length; ii++)
             {
-                mTable[ii] = multiplication((byte) (ii/256), (byte) (ii%256));
+                mTable[ii] = multiplication((byte) (ii/BYTE_NUMS), (byte) (ii%BYTE_NUMS));
             }
         }
 
@@ -38,7 +43,7 @@ namespace encryption
         public byte multiply(byte a, byte b) //this is the public call to the object. Multiplication is
         {                                    //the underlying arithmetic, but it is only used to created
                                              //the multiplication table, because it is expensive.
-            return mTable[256 * a + b];
+            return mTable[BYTE_NUMS * a + b];
         }
 
         /// <summary>

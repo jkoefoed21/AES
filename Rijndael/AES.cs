@@ -73,22 +73,27 @@ namespace encryption
         ///<param name="filePath"> File to be encrypted </param>
         public static void encryptionMain(String password, String filePath)
         {
+            /*
+            FileStream f = new FileStream(filePath, FileMode.Open);
+            int initialByteLength = f.Length;
+            
+            */
             byte[] readBytes = File.ReadAllBytes(filePath); //this throws IO if larger than 2GB--should really make a stream
             byte[] initial = new byte[(int)(BLOCK_LENGTH * (Math.Ceiling((double)readBytes.Length / (double)BLOCK_LENGTH)))];
             Array.Copy(readBytes, initial, readBytes.Length);
             int initialByteLength = readBytes.Length; //used for CTS.
             readBytes = null;
             GC.Collect();
-
             Rfc2898DeriveBytes keyDeriver = new Rfc2898DeriveBytes(password, SALT_LENGTH, NUM_ITERATIONS); //creates random salt for a key
             RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider(); //this is cryptographically secure IV
+
 
             byte[] initVect = new byte[BLOCK_LENGTH];
             rng.GetBytes(initVect);
             byte[] salt = keyDeriver.Salt;
             byte[] key = keyDeriver.GetBytes(BLOCK_LENGTH); //gets a key from the password
             byte[] keyHash = getHash(key, salt);//64 bytes--uses same salt as key deriver...this shouldn't be an issue.
-
+            //these are going to have to go on the end...
             BitMatrix ivMat = new BitMatrix(GF_TABLE, SUB_TABLE, initVect, 0); //IV as BM
             BitMatrix[] keys = getKeySchedule(key); //schedule as an array of BMs
 
@@ -110,8 +115,8 @@ namespace encryption
         ///<param name="filePath"> File to be decrypted </param>
         public static void decryptionMain(String password, String filePath) //optimize memory--no need to toBMARRAY this whole thing
         {
-            byte[] readBytes = File.ReadAllBytes(filePath);
-            byte[] initial = new byte[(int)(BLOCK_LENGTH * (Math.Ceiling((double)readBytes.Length / (double)BLOCK_LENGTH)))];
+            byte[] readBytes = File.ReadAllBytes(filePath); //tops out at 2GB, should stream
+            byte[] initial = new byte[(int)(BLOCK_LENGTH * (Math.Ceiling((double)readBytes.Length / (double)BLOCK_LENGTH)))]; //rounds to block
             Array.Copy(readBytes, initial, readBytes.Length);
             int initialByteLength = readBytes.Length; //used for CipherText stealing--makes result same length as input, 
             readBytes = null;                         //regardless of whether its a multiple of the block length.
@@ -151,8 +156,8 @@ namespace encryption
             }
             decrypt(keys, bytesToDecrypt, ivMat, ShortBytes); //backwards is slightly faster I think
 
-            if (bytesToDecrypt.Length==16) //because CTS doesn't work with 1 block stuff.
-            {
+            if (bytesToDecrypt.Length==16) //because CTS doesn't work with 1 block stuff. This is the protocol for 1 block.
+            {                               //chops off all trailing zero bytes.
                 for (int ii=15; ii>=0; ii--)
                 {
                     if (bytesToDecrypt[ii]!=0) //this was ALL messed up in the turned in version--initial byte length became like 5
@@ -323,13 +328,10 @@ namespace encryption
             matrix.invShiftRows();
             for (int ii = ROUNDS - 2; ii > 0; ii--)
             {
-                //matrix.invShiftRows();
                 matrix.invSubBytes();
                 matrix.addRoundKey(key[ii]);
-                //matrix.invMixColumns();
                 matrix.invShiftAndMix();
             }
-            //matrix.invShiftRows();
             matrix.invSubBytes();
             matrix.addRoundKey(key[0]);
         }
@@ -438,7 +440,7 @@ namespace encryption
         /// <param name="block1S"> The start of the first block.</param>
         /// <param name="block2S"> The start of the second block. </param>
         /// <param name="length"> The length of the blocks being swapped. </param>
-        public static void swapElements(byte[] array, int block1S, int block2S, int length) //need a bunch of exceptions here
+        public static void swapElements(byte[] array, int block1S, int block2S, int length) //need a bunch of exceptions here--but exceptions are slow
         {
             for (int ii = 0; ii < length; ii++)
             {

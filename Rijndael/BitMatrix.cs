@@ -137,7 +137,7 @@ namespace encryption
         }
 
         /// <summary>
-        /// Conducts the mixColumns step of the AES algorithm. Currently not used anywhere--shiftrows is, however. 
+        /// Conducts the mixColumns step of the AES algorithm. Now Deprecated
         /// </summary>
         public void mixColumns() 
         {
@@ -153,7 +153,7 @@ namespace encryption
         }
 
         /// <summary>
-        /// Conducts the inverse mix columns step of the AES algorithm. Currently Obselete.
+        /// Conducts the inverse mix columns step of the AES algorithm. Now Deprecated
         /// </summary>
         public void invMixColumns()
         {
@@ -244,9 +244,8 @@ namespace encryption
                                          (root+((17 - 3 * (ii % 4)) % 4)),
                                          (root+((18 - 3 * (ii % 4)) % 4)),
                                          (root+((19 - 3 * (ii % 4)) % 4)) };
-                //Console.Write(ii+" ");
-                //Console.WriteLine(smTab[ii][0] + " " + smTab[ii][1] + " " + smTab[ii][2] + " " + smTab[ii][3]);
             }
+            //creates as 2D, parses to 1D
             int[] table = new int[64];
             for (int ii = 0; ii < smTab.Length; ii++)
             {
