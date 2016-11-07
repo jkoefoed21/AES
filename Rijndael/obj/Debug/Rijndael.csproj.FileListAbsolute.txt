@@ -18,3 +18,7 @@ C:\Users\Jack Koefoed\OneDrive\11\CS\C# stuff\Rijndael\Rijndael\obj\Debug\Rijnda
 C:\Users\Jack Koefoed\OneDrive\11\CS\C# stuff\Rijndael\Rijndael\obj\Debug\encryption.Properties.Resources.resources
 C:\Users\Jack Koefoed\OneDrive\11\CS\C# stuff\Rijndael\Rijndael\obj\Debug\encryption.Rijndael.resources
 C:\Users\Jack Koefoed\OneDrive\11\CS\C# stuff\Rijndael\Rijndael\obj\Debug\Rijndael.csproj.GenerateResource.Cache
+C:\Users\Jack Koefoed\OneDrive\11\CS\C# stuff\Rijndael\AES\Rijndael\bin\Debug\Rijndael.exe.config
+C:\Users\Jack Koefoed\OneDrive\11\CS\C# stuff\Rijndael\AES\Rijndael\bin\Debug\Rijndael.XML
+C:\Users\Jack Koefoed\OneDrive\11\CS\C# stuff\Rijndael\AES\Rijndael\obj\Debug\Rijndael.exe
+C:\Users\Jack Koefoed\OneDrive\11\CS\C# stuff\Rijndael\AES\Rijndael\obj\Debug\Rijndael.pdb
