@@ -75,7 +75,7 @@ namespace encryption
         {
             FileStream f = new FileStream(filePath, FileMode.Open);
             int initialByteLength = (int) f.Length;
-
+            Console.WriteLine("IBL: " + initialByteLength);
             Rfc2898DeriveBytes keyDeriver = new Rfc2898DeriveBytes(password, SALT_LENGTH, NUM_ITERATIONS); //creates random salt for a key
             RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider(); //this is cryptographically secure IV
 
@@ -90,7 +90,7 @@ namespace encryption
             BitMatrix[] keys = getKeySchedule(key); //schedule as an array of BMs
 
             encrypt(keys, f, ivMat);
-
+            Console.WriteLine(f.Length);
             f.Position = initialByteLength;
             f.Write(keyHash, 0, keyHash.Length); //this should auto-advance now
             f.Write(initVect, 0, initVect.Length);
@@ -213,6 +213,7 @@ namespace encryption
                 return;
             }
             //read block, put to array
+            f.SetLength((long) (BLOCK_LENGTH * Math.Ceiling((double) f.Length/(double) BLOCK_LENGTH)));
             byte[] b = new byte[BLOCK_LENGTH];
             f.Read(b, 0, BLOCK_LENGTH);
             BitMatrix matrix = new BitMatrix(GF_TABLE, SUB_TABLE, b, 0); //first matrix is seperate 
