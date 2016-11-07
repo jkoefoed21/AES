@@ -71,19 +71,11 @@ namespace encryption
         ///</summary>
         ///<param name="password"> Password to be encrypted with </param>
         ///<param name="filePath"> File to be encrypted </param>
-        public static void encryptionMain(String password, String filePath)
+        public static void encryptionMain(String password, String filePath) //Lingering issues 
         {
-            /*
             FileStream f = new FileStream(filePath, FileMode.Open);
-            int initialByteLength = f.Length;
-            
-            */
-            byte[] readBytes = File.ReadAllBytes(filePath); //this throws IO if larger than 2GB--should really make a stream
-            byte[] initial = new byte[(int)(BLOCK_LENGTH * (Math.Ceiling((double)readBytes.Length / (double)BLOCK_LENGTH)))];
-            Array.Copy(readBytes, initial, readBytes.Length);
-            int initialByteLength = readBytes.Length; //used for CTS.
-            readBytes = null;
-            GC.Collect();
+            int initialByteLength = (int) f.Length;
+            Console.WriteLine("IBL: " + initialByteLength);
             Rfc2898DeriveBytes keyDeriver = new Rfc2898DeriveBytes(password, SALT_LENGTH, NUM_ITERATIONS); //creates random salt for a key
             RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider(); //this is cryptographically secure IV
 
@@ -97,14 +89,16 @@ namespace encryption
             BitMatrix ivMat = new BitMatrix(GF_TABLE, SUB_TABLE, initVect, 0); //IV as BM
             BitMatrix[] keys = getKeySchedule(key); //schedule as an array of BMs
 
-            encrypt(keys, initial, ivMat);
-
-            byte[] output = packageEncryptionOutput(keyHash, initVect, salt, initial, initialByteLength);
-            initial = null;
-            GC.Collect();
-
-            File.WriteAllBytes(filePath, output);
-            output = null;
+            encrypt(keys, f, ivMat);
+            Console.WriteLine(f.Length);
+            f.Position = initialByteLength;
+            f.Write(keyHash, 0, keyHash.Length); //this should auto-advance now
+            f.Write(initVect, 0, initVect.Length);
+            f.Write(salt, 0, salt.Length);
+            //byte[] output = packageEncryptionOutput(keyHash, initVect, salt, initial, initialByteLength);
+            f.Close();
+            //File.WriteAllBytes(filePath, output);
+            //output = null;
             GC.Collect();
         }
 
@@ -116,10 +110,7 @@ namespace encryption
         public static void decryptionMain(String password, String filePath) //optimize memory--no need to toBMARRAY this whole thing
         {
             byte[] readBytes = File.ReadAllBytes(filePath); //tops out at 2GB, should stream
-            byte[] initial = new byte[(int)(BLOCK_LENGTH * (Math.Ceiling((double)readBytes.Length / (double)BLOCK_LENGTH)))]; //rounds to block
-            Array.Copy(readBytes, initial, readBytes.Length);
-            int initialByteLength = readBytes.Length; //used for CipherText stealing--makes result same length as input, 
-            readBytes = null;                         //regardless of whether its a multiple of the block length.
+            int initialByteLength = readBytes.Length; //used for CipherText stealing--makes result same length as input,                     //regardless of whether its a multiple of the block length.
             GC.Collect();
 
             byte[] initVect = new byte[BLOCK_LENGTH];
@@ -130,20 +121,20 @@ namespace encryption
                 throw new ApplicationException(); 
             }                                 
             //key management
-            Array.Copy(initial, 0, readHash, 0, HASH_LENGTH); //make key, salt, and hash from file.
-            Array.Copy(initial, HASH_LENGTH, initVect, 0, BLOCK_LENGTH);
-            Array.Copy(initial, HASH_LENGTH + BLOCK_LENGTH, salt, 0, SALT_LENGTH);
+            Array.Copy(readBytes, readBytes.Length-SALT_LENGTH-BLOCK_LENGTH-HASH_LENGTH, readHash, 0, HASH_LENGTH); //make key, salt, and hash from file.
+            Array.Copy(readBytes, readBytes.Length - SALT_LENGTH - BLOCK_LENGTH, initVect, 0, BLOCK_LENGTH);
+            Array.Copy(readBytes, readBytes.Length - SALT_LENGTH, salt, 0, SALT_LENGTH);
             Rfc2898DeriveBytes keyDeriver = new Rfc2898DeriveBytes(password, salt, NUM_ITERATIONS); //creates random salt for a key
             byte[] key = keyDeriver.GetBytes(BLOCK_LENGTH);
-            byte[] bytesToDecrypt = new byte[initial.Length - HASH_LENGTH - BLOCK_LENGTH - SALT_LENGTH];
-            Array.Copy(initial, HASH_LENGTH + BLOCK_LENGTH + SALT_LENGTH, bytesToDecrypt, 0, bytesToDecrypt.Length);
+            byte[] bytesToDecrypt = new byte[(int)(BLOCK_LENGTH * (Math.Ceiling((double)(readBytes.Length - HASH_LENGTH - BLOCK_LENGTH - SALT_LENGTH) / (double)BLOCK_LENGTH)))]; //rounds to block
+            Array.Copy(readBytes, 0, bytesToDecrypt, 0, bytesToDecrypt.Length);
             byte[] keyHash = getHash(key, salt); //64 bytes
             if (!keyHash.SequenceEqual(readHash))
             {
                 throw new ApplicationException(); //exception thrown if bad password or file... caught elsewhere.
             }
             //go GC on initial here, GC on bytes to encrypt later
-            initial = null;
+            readBytes = null;
             GC.Collect();
             BitMatrix ivMat = new BitMatrix(GF_TABLE, SUB_TABLE, initVect, 0); //IV as BM
             BitMatrix[] keys = getKeySchedule(key); //schedule as an array of BMs
@@ -213,28 +204,40 @@ namespace encryption
         /// Runs the encryption algorithm.
         /// </summary>
         /// <param name="key"> The full key schedule </param>
-        /// <param name="toEncrypt"> The byte array to be encrypted </param>
+        /// <param name="f"> The file being encrypted </param>
         /// <param name="iv"> The initialization vector </param>
-        public static void encrypt(BitMatrix[] key, byte[] toEncrypt, BitMatrix iv)
+        public static void encrypt(BitMatrix[] key, FileStream f, BitMatrix iv)
         {
-            if (toEncrypt.Length == 0)
+            if (f.Length == 0)
             {
                 return;
             }
-            BitMatrix matrix = new BitMatrix(GF_TABLE, SUB_TABLE, toEncrypt, 0); //first matrix is seperate 
+            //read block, put to array
+            f.SetLength((long) (BLOCK_LENGTH * Math.Ceiling((double) f.Length/(double) BLOCK_LENGTH)));
+            byte[] b = new byte[BLOCK_LENGTH];
+            f.Read(b, 0, BLOCK_LENGTH);
+            BitMatrix matrix = new BitMatrix(GF_TABLE, SUB_TABLE, b, 0); //first matrix is seperate 
             matrix.addRoundKey(iv);                                              //because it operates off IV
             encryptSingle(key, matrix); //for CBC
-            for (int jj = 1; jj < toEncrypt.Length / BLOCK_LENGTH; jj++)
+            f.Position = 0;
+            f.Write(b, 0, BLOCK_LENGTH);
+            for (int jj = 1; jj < f.Length / BLOCK_LENGTH; jj++)
             {
                 BitMatrix oldMatrix = matrix;
-                matrix = new BitMatrix(GF_TABLE, SUB_TABLE, toEncrypt, BLOCK_LENGTH * jj);
+                b = new byte[BLOCK_LENGTH]; //need to keep the old ref to b--slow tho
+                f.Position = 16 * jj;
+                f.Read(b, 0, BLOCK_LENGTH);
+                matrix = new BitMatrix(GF_TABLE, SUB_TABLE, b, 0); //the offset in bitmatrix can be deprecated
                 matrix.addRoundKey(oldMatrix); //CBC
                 encryptSingle(key, matrix);
+                f.Position = 16 * jj;
+                f.Write(b, 0, BLOCK_LENGTH);
             }
-            if (toEncrypt.Length > BLOCK_LENGTH) //for CipherText stealing
+            //truncation is going to have to happen in this function...swap elements is also useless with streaming
+            if (f.Length > BLOCK_LENGTH) //for CipherText stealing
             {   //CTS encrypting in Cipher Block Chaining there is an implicit copy in the XOR
                 //you just flip the last two blocks and truncate.
-                swapElements(toEncrypt, toEncrypt.Length - (2 * BLOCK_LENGTH), toEncrypt.Length - BLOCK_LENGTH, BLOCK_LENGTH);
+                swapElements(f, (int) f.Length - (2 * BLOCK_LENGTH), (int) f.Length - BLOCK_LENGTH, BLOCK_LENGTH);
             }
         }
 
@@ -431,6 +434,28 @@ namespace encryption
         {
             Rfc2898DeriveBytes rdb = new Rfc2898DeriveBytes(key, salt, NUM_ITERATIONS); //The hash is PBKDF2 on the key
             return rdb.GetBytes(HASH_LENGTH);                                           //with the same salt as before.
+        }
+
+        /// <summary>
+        /// Swaps a pair of blocks in a byte array
+        /// </summary>
+        /// <param name="f"> The stream in which the swap is taking place</param>
+        /// <param name="block1S"> The start of the first block.</param>
+        /// <param name="block2S"> The start of the second block. </param>
+        /// <param name="length"> The length of the blocks being swapped. </param>
+        public static void swapElements(FileStream f, int block1S, int block2S, int length) //need a bunch of exceptions here--but exceptions are slow
+        {
+            byte[] b1 = new byte[length];
+            byte[] b2 = new byte[length];
+            Console.WriteLine(f.Length);
+            f.Position = block1S;
+            f.Read(b1, 0, b1.Length);
+            f.Position = block2S;
+            f.Read(b2, 0, b2.Length);
+            f.Position = block2S;
+            f.Write(b1, 0, b1.Length);
+            f.Position = block1S;
+            f.Write(b2, 0, b2.Length); 
         }
 
         /// <summary>
