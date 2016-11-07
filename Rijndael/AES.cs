@@ -73,11 +73,6 @@ namespace encryption
         ///<param name="filePath"> File to be encrypted </param>
         public static void encryptionMain(String password, String filePath)
         {
-            /*
-            FileStream f = new FileStream(filePath, FileMode.Open);
-            int initialByteLength = f.Length;
-            
-            */
             byte[] readBytes = File.ReadAllBytes(filePath); //this throws IO if larger than 2GB--should really make a stream
             byte[] initial = new byte[(int)(BLOCK_LENGTH * (Math.Ceiling((double)readBytes.Length / (double)BLOCK_LENGTH)))];
             Array.Copy(readBytes, initial, readBytes.Length);
