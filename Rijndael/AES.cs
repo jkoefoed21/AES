@@ -31,7 +31,7 @@ namespace encryption
         /// <summary>
         /// The Length of the salt.
         /// </summary>
-        public static readonly int SALT_LENGTH = 1024; //bytes not bits
+        public static readonly int SALT_LENGTH = 64; //bytes not bits
 
         /// <summary>
         /// The length of 128 bits in bytes
@@ -52,7 +52,7 @@ namespace encryption
         /// The Number of iterations used for the PBKDF2. This slows the program down a lot
         /// but it is good that it does, because it makes the hash, iv cryptographically secure.
         /// </summary>
-        public static readonly int NUM_ITERATIONS = 32768; //slows the algorithm down by about a second...for security though
+        public static readonly int NUM_ITERATIONS = 30000; //slows the algorithm down by about a second...for security though
 
         ///<summary>
         ///the entry point for the program. Opens the UI.

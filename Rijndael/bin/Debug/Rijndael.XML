@@ -217,6 +217,12 @@
             the shift rows operation.
             </summary>
         </member>
+        <member name="F:encryption.BitMatrix.invShiftMixTable">
+            <summary>
+            Used for shift and mix as a helper table to compute locations before and after
+            the shift rows operation.
+            </summary>
+        </member>
         <member name="F:encryption.BitMatrix.subBox">
             <summary>
             The S-Box used for rijndael operations.
@@ -248,7 +254,7 @@
         </member>
         <member name="M:encryption.BitMatrix.#ctor(encryption.GF28Table,encryption.sBox,System.Byte[],System.Byte[],System.Byte[],System.Byte[])">
             <summary>
-            Constructs a new BitMatrix with the specified 4 "words".
+            Constructs a new BitMatrix with the specified 4 "words". 
             </summary>
             <param name="g"> The GF(2^8) field being used. </param>
             <param name="s"> The S-Box being used. </param>
@@ -281,24 +287,39 @@
         </member>
         <member name="M:encryption.BitMatrix.mixColumns">
             <summary>
-            Conducts the mixColumns step of the AES algorithm.
+            Conducts the mixColumns step of the AES algorithm. Now Deprecated
             </summary>
         </member>
         <member name="M:encryption.BitMatrix.invMixColumns">
             <summary>
-            Conducts the inverse mix columns step of the AES algorithm.
+            Conducts the inverse mix columns step of the AES algorithm. Now Deprecated
             </summary>
         </member>
         <member name="M:encryption.BitMatrix.shiftAndMix">
             <summary>
             Conducts shiftRows and MixColumns with only a single array copy instead of two. Approx 10% faster.
+            Basically performs mixcolumns, but on values specified in the SMtable which is a map of what SR does.
             </summary>
         </member>
-        <member name="M:encryption.BitMatrix.instantatiateShiftMixTable">
+        <member name="M:encryption.BitMatrix.instantiateShiftMixTable">
             <summary>
              Acts as a helper method to shift and mix, by creating a table that does a bunch of messy arithmetic and
-             Makes each one into a 2D array table lookup. Feeds out a 16x4--4 values for each of the 16 spots in the matrix
+             Makes each one into a 2D array table lookup. Feeds out a 64 but functionally a 
+             16x4--4 values for each of the 16 spots in the matrix
              </summary>                                            
+        </member>
+        <member name="M:encryption.BitMatrix.invShiftAndMix">
+            <summary>
+            Conducts invMixColumns and Shift Rows with only a single array copy instead of two. Much faster faster.
+            Basically performs mixcolumns, but on values specified in the iSMtable which is a map of what SR does.
+            </summary>
+        </member>
+        <member name="M:encryption.BitMatrix.instantiateInvShiftMixTable">
+            <summary>
+            Instantiates the table for invShiftandMix--different architecture from shiftandmix because mix is first
+            Much faster than the two seperate.
+            </summary>
+            <returns> The Inv Shift Mix table </returns>
         </member>
         <member name="M:encryption.BitMatrix.shiftRows">
             <summary>
@@ -307,7 +328,7 @@
         </member>
         <member name="M:encryption.BitMatrix.invShiftRows">
             <summary>
-            Conducts the inverse shift rows step of the AES algorithm.
+            Conducts the inverse shift rows step of the AES algorithm. 
             </summary>
         </member>
         <member name="M:encryption.BitMatrix.getWord(System.Int32)">
@@ -353,9 +374,14 @@
             A ushort representation of the irreducible polynomial used in GF(2^8) arithmetic.
             </summary>
         </member>
-        <member name="F:encryption.GF28Table.multTable">
+        <member name="F:encryption.GF28Table.mTable">
             <summary>
             The multiplication table.
+            </summary>
+        </member>
+        <member name="F:encryption.GF28Table.BYTE_NUMS">
+            <summary>
+            The number of values that can fit into a byte.
             </summary>
         </member>
         <member name="M:encryption.GF28Table.#ctor">
@@ -381,8 +407,7 @@
         </member>
         <member name="T:encryption.RandomTesting">
             <summary>
-            This is just a class that I drew up to test various stuff. Currently it is testing the difference between encrypt
-            and encrypt single
+            This is just a class that I drew up to test various stuff. Currently it is testing the speed of decrypt single
             </summary>
         </member>
         <member name="T:encryption.Rijndael">

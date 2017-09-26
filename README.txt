@@ -1,4 +1,4 @@
-Created by Jack Koefoed for Lakeside School CSIII
+Created by Jack Koefoed
 
 This program uses the AES cipher with a 128 bit key and block size with a PBKDF2 hash.
 
